@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>klut3rbox</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <header>
+      <h1>klut3rbox</h1>
+      <div class="status">
+        <span id="statusText">Connecting...</span>
+      </div>
+    </header>
+
+    <main>
+      <section class="boxes">
+        <h2>Boxes</h2>
+        <form id="addBoxForm" class="inline-form">
+          <input type="text" id="newBoxCode" placeholder="New box code (e.g., box2)" required />
+          <input type="text" id="newBoxLabel" placeholder="Label (optional)" />
+          <button type="submit">Add Box</button>
+        </form>
+        <div id="boxGrid" class="box-grid"></div>
+      </section>
+
+      <section class="quick-add">
+        <h2>Quick Add (Choose File)</h2>
+        <div class="inline-form">
+          <input type="file" id="quickFile" accept="image/*" />
+          <select id="quickBoxSelect"></select>
+          <button id="quickAddBtn">Quick Add</button>
+        </div>
+        <p class="note">If an AI key is configured, the server will infer name/description from the image and save to the selected box.</p>
+        <div id="suggestPanel" class="suggest-panel" style="display:none">
+          <div class="suggest-body">
+            <img id="suggestImage" alt="preview" />
+            <input type="text" id="suggestName" placeholder="Name" />
+            <input type="text" id="suggestDesc" placeholder="Description" />
+            <select id="suggestBoxSelect"></select>
+          </div>
+          <div class="inline-form">
+            <button id="suggestConfirm">Add Item</button>
+            <button id="suggestCancel" type="button">Cancel</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="add-item">
+        <h2>Add Item Manually</h2>
+        <form id="addItemForm" class="grid-form">
+          <input type="text" id="itemName" placeholder="Item name" required />
+          <input type="text" id="itemDesc" placeholder="Description (optional)" />
+          <select id="manualBoxSelect"></select>
+          <button type="submit">Add</button>
+        </form>
+      </section>
+
+      <section class="search">
+        <h2>Search</h2>
+        <div class="grid-form">
+          <input type="search" id="searchInput" placeholder="Search by name or description" />
+          <select id="searchBoxSelect"></select>
+          <button id="searchBtn">Search</button>
+        </div>
+      </section>
+
+      <section class="results">
+        <h2>Items</h2>
+        <div id="items"></div>
+      </section>
+    </main>
+
+    <script src="/main.js"></script>
+  </body>
+  </html>
+
+

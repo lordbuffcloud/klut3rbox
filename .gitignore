@@ -1,0 +1,33 @@
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-store/
+
+# Env
+.env
+.env.*
+
+# OS/filesystem
+.DS_Store
+Thumbs.db
+
+# Editors/IDE
+.vscode/
+.idea/
+
+# Builds/coverage
+build/
+dist/
+coverage/
+.parcel-cache/
+.next/
+
+# Project data and uploads
+# (avoid committing local databases and uploaded media)
+data/*.db*
+uploads/**
+
+# Misc
+*.log
