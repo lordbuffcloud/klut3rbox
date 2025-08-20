@@ -4,6 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>klut3rbox</title>
+    <meta name="theme-color" content="#0f172a" />
     <link rel="stylesheet" href="/styles.css" />
   </head>
   <body>
@@ -15,7 +16,7 @@
     </header>
 
     <main>
-      <section class="boxes">
+      <section class="boxes" id="boxes">
         <h2>Boxes</h2>
         <form id="addBoxForm" class="inline-form">
           <input type="text" id="newBoxCode" placeholder="New box code (e.g., box2)" required />
@@ -25,10 +26,10 @@
         <div id="boxGrid" class="box-grid"></div>
       </section>
 
-      <section class="quick-add">
+      <section class="quick-add" id="quick-add">
         <h2>Quick Add (Choose File)</h2>
         <div class="inline-form">
-          <input type="file" id="quickFile" accept="image/*" />
+          <input type="file" id="quickFile" accept="image/*" capture="environment" />
           <select id="quickBoxSelect"></select>
           <button id="quickAddBtn">Quick Add</button>
         </div>
@@ -47,7 +48,7 @@
         </div>
       </section>
 
-      <section class="add-item">
+      <section class="add-item" id="add-item">
         <h2>Add Item Manually</h2>
         <form id="addItemForm" class="grid-form">
           <input type="text" id="itemName" placeholder="Item name" required />
@@ -57,7 +58,7 @@
         </form>
       </section>
 
-      <section class="search">
+      <section class="search" id="search">
         <h2>Search</h2>
         <div class="grid-form">
           <input type="search" id="searchInput" placeholder="Search by name or description" />
@@ -67,11 +68,47 @@
         </div>
       </section>
 
-      <section class="results">
+      <section class="results" id="results">
         <h2>Items</h2>
         <div id="items"></div>
       </section>
     </main>
+
+    <nav class="bottom-nav" id="bottomNav">
+      <button data-target="#boxes">Boxes</button>
+      <button data-target="#quick-add">Quick Add</button>
+      <button data-target="#search">Search</button>
+      <button data-target="#results">Items</button>
+    </nav>
+
+    <button class="fab" id="fabAdd" title="Quick Add">＋</button>
+
+    <div id="toastContainer" class="toast-container" aria-live="polite" aria-atomic="true"></div>
+
+    <div class="modal-backdrop" id="editModal" style="display:none">
+      <div class="modal">
+        <h3>Edit Item</h3>
+        <form id="editForm">
+          <input type="hidden" id="editId" />
+          <div class="form-row">
+            <label for="editName">Name</label>
+            <input type="text" id="editName" required />
+          </div>
+          <div class="form-row">
+            <label for="editDesc">Description</label>
+            <input type="text" id="editDesc" />
+          </div>
+          <div class="form-row">
+            <label for="editBox">Box Code</label>
+            <input type="text" id="editBox" placeholder="e.g., box1" />
+          </div>
+          <div class="modal-actions">
+            <button type="submit">Save</button>
+            <button type="button" class="secondary" id="editCancel">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
 
     <script src="/main.js"></script>
   </body>

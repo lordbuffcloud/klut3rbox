@@ -4,13 +4,29 @@ async function getJSON(url, opts = {}) {
   return res.json();
 }
 
+function toast(message, type = 'success', timeoutMs = 2500) {
+  const cont = document.getElementById('toastContainer');
+  if (!cont) return;
+  const el = document.createElement('div');
+  el.className = `toast ${type === 'error' ? 'error' : ''}`;
+  el.textContent = message;
+  cont.appendChild(el);
+  setTimeout(() => { el.remove(); }, timeoutMs);
+}
+
+function lazyImg(src, alt) {
+  const img = document.createElement('img');
+  img.loading = 'lazy';
+  img.src = src; // keep simple; modern browsers handle lazy with loading attr
+  img.alt = alt || '';
+  return img;
+}
+
 function itemCard(item) {
   const container = document.createElement('div');
   container.className = 'item-card';
   if (item.image_path) {
-    const img = document.createElement('img');
-    img.src = item.image_path;
-    img.alt = item.name;
+    const img = lazyImg(item.image_path, item.name);
     container.appendChild(img);
   }
   const title = document.createElement('h3');
@@ -29,23 +45,7 @@ function itemCard(item) {
   actions.style.gap = '8px';
   const edit = document.createElement('button');
   edit.textContent = 'Edit';
-  edit.onclick = async () => {
-    const newName = prompt('Edit name', item.name);
-    if (newName === null) return; // cancel
-    const newDesc = prompt('Edit description (optional)', item.description || '');
-    let newBox = prompt('Move to box code (leave blank to keep current)', '');
-    if (newBox !== null) newBox = newBox.trim();
-    try {
-      const body = { name: newName.trim() };
-      if (newDesc !== null) body.description = newDesc.trim();
-      if (newBox) body.box_code = newBox;
-      await getJSON(`/api/items/${item.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
-      await refreshItems();
-      await refreshBoxes();
-    } catch (e) {
-      alert('Failed to update item');
-    }
-  };
+  edit.onclick = () => openEditModal(item);
   actions.appendChild(edit);
   const del = document.createElement('button');
   del.textContent = 'Delete';
@@ -58,7 +58,7 @@ function itemCard(item) {
       if (!res.ok) throw new Error(await res.text());
       await refreshItems();
     } catch (err) {
-      alert('Failed to delete item');
+      toast('Failed to delete item', 'error');
     }
   };
   actions.appendChild(del);
@@ -86,6 +86,7 @@ async function checkHealth() {
     document.getElementById('statusText').textContent = 'Ready';
   } catch (err) {
     document.getElementById('statusText').textContent = 'Server unavailable';
+    toast('Server unavailable', 'error');
   }
 }
 
@@ -107,7 +108,7 @@ function wireAddItemForm() {
       form.reset();
       await refreshItems();
     } catch (err) {
-      alert('Failed to add item');
+      toast('Failed to add item', 'error');
     }
   });
 }
@@ -134,6 +135,7 @@ function wireSearch() {
       items.forEach((it) => itemsDiv.appendChild(itemCard(it)));
     } catch (err) {
       itemsDiv.textContent = 'Search failed';
+      toast('Search failed', 'error');
     }
   }
   btn.addEventListener('click', run);
@@ -216,7 +218,7 @@ function wireAddBoxForm() {
       form.reset();
       await refreshBoxes();
     } catch (err) {
-      alert('Failed to add box');
+      toast('Failed to add box', 'error');
     }
   });
 }
@@ -294,7 +296,7 @@ function wireQuickAdd() {
       };
       cancelBtn.onclick = () => { panel.style.display = 'none'; };
     } catch (err) {
-      alert('Quick add failed');
+      toast('Quick add failed', 'error');
     }
   });
 }
@@ -315,8 +317,72 @@ window.addEventListener('DOMContentLoaded', async () => {
   wireAddItemForm();
   wireSearch();
   wireQuickAdd();
+  wireBottomNav();
+  wireFab();
+  wireEditModal();
   await refreshBoxes();
   await refreshItems();
 });
+
+function wireBottomNav() {
+  const nav = document.getElementById('bottomNav');
+  if (!nav) return;
+  nav.addEventListener('click', (e) => {
+    const btn = e.target.closest('button[data-target]');
+    if (!btn) return;
+    const target = document.querySelector(btn.getAttribute('data-target'));
+    if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+}
+
+function wireFab() {
+  const fab = document.getElementById('fabAdd');
+  const quick = document.getElementById('quick-add');
+  if (!fab || !quick) return;
+  fab.addEventListener('click', () => quick.scrollIntoView({ behavior: 'smooth' }));
+}
+
+function openEditModal(item) {
+  const modal = document.getElementById('editModal');
+  const idEl = document.getElementById('editId');
+  const nameEl = document.getElementById('editName');
+  const descEl = document.getElementById('editDesc');
+  const boxEl = document.getElementById('editBox');
+  if (!modal || !idEl || !nameEl) return;
+  idEl.value = String(item.id);
+  nameEl.value = item.name || '';
+  descEl.value = item.description || '';
+  boxEl.value = item.box_code || '';
+  modal.style.display = '';
+}
+
+function wireEditModal() {
+  const modal = document.getElementById('editModal');
+  const form = document.getElementById('editForm');
+  const cancel = document.getElementById('editCancel');
+  if (!modal || !form || !cancel) return;
+  cancel.addEventListener('click', () => { modal.style.display = 'none'; });
+  modal.addEventListener('click', (e) => { if (e.target === modal) modal.style.display = 'none'; });
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const id = Number(document.getElementById('editId').value);
+    const name = document.getElementById('editName').value.trim();
+    const description = document.getElementById('editDesc').value.trim();
+    const box_code = document.getElementById('editBox').value.trim();
+    if (!id || !name) return;
+    try {
+      const body = { name };
+      if (description || description === '') body.description = description;
+      if (box_code) body.box_code = box_code;
+      await getJSON(`/api/items/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+      modal.style.display = 'none';
+      toast('Item updated');
+      await refreshItems();
+      await refreshBoxes();
+    } catch (_) {
+      toast('Failed to update item', 'error');
+    }
+  });
+}
 
 
