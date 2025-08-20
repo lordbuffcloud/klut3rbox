@@ -27,6 +27,26 @@ function itemCard(item) {
   const actions = document.createElement('div');
   actions.style.display = 'flex';
   actions.style.gap = '8px';
+  const edit = document.createElement('button');
+  edit.textContent = 'Edit';
+  edit.onclick = async () => {
+    const newName = prompt('Edit name', item.name);
+    if (newName === null) return; // cancel
+    const newDesc = prompt('Edit description (optional)', item.description || '');
+    let newBox = prompt('Move to box code (leave blank to keep current)', '');
+    if (newBox !== null) newBox = newBox.trim();
+    try {
+      const body = { name: newName.trim() };
+      if (newDesc !== null) body.description = newDesc.trim();
+      if (newBox) body.box_code = newBox;
+      await getJSON(`/api/items/${item.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+      await refreshItems();
+      await refreshBoxes();
+    } catch (e) {
+      alert('Failed to update item');
+    }
+  };
+  actions.appendChild(edit);
   const del = document.createElement('button');
   del.textContent = 'Delete';
   del.style.background = '#ef4444';
@@ -97,6 +117,7 @@ function wireSearch() {
   const btn = document.getElementById('searchBtn');
   const boxSel = document.getElementById('searchBoxSelect');
   const itemsDiv = document.getElementById('items');
+  const exportBtn = document.getElementById('exportBtn');
   async function run() {
     const q = input.value.trim();
     const box_code = boxSel && boxSel.value ? boxSel.value : '';
@@ -125,6 +146,11 @@ function wireSearch() {
   if (boxSel) {
     boxSel.addEventListener('change', () => {
       if (!input.value.trim()) refreshItems();
+    });
+  }
+  if (exportBtn) {
+    exportBtn.addEventListener('click', () => {
+      window.location.href = '/api/export?download=1';
     });
   }
 }

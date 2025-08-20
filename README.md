@@ -147,6 +147,7 @@ Base URL: `http://localhost:3000`
 
 - GET `/api/items?box_code=box1&limit=50&offset=0`
 - POST `/api/items` JSON `{ name, description?, image_path?, box_code? }`
+- PUT `/api/items/:id` JSON `{ name?, description?, box_code? }`
 - DELETE `/api/items/:id`
 
 - GET `/api/search?q=needle[&box_code=box1]`
@@ -159,6 +160,9 @@ Base URL: `http://localhost:3000`
 
 - POST `/api/vision-suggest` multipart form: `image=@/path/to/file.jpg`
   - Returns `{ items: [ { name, description } ], image_path, box_code }` without saving items
+
+- GET `/api/export[?download=1]`
+  - Returns all boxes and items as JSON. With `download=1`, sends a file download named `klut3rbox-export.json`.
 
 Example (curl) – upload an image, then create an item referencing it:
 

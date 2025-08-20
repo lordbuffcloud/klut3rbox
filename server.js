@@ -220,6 +220,39 @@ app.post('/api/items', (req, res) => {
   }
 });
 
+// Update item by id
+app.put('/api/items/:id', (req, res) => {
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id) || id <= 0) {
+    return res.status(400).json({ error: 'Invalid id' });
+  }
+  const { name, description, box_code } = req.body || {};
+  try {
+    const existing = db.prepare('SELECT * FROM items WHERE id = ?').get(id);
+    if (!existing) return res.status(404).json({ error: 'Not found' });
+
+    let newName = existing.name;
+    let newDescription = existing.description;
+    let newBoxCode = existing.box_code;
+
+    if (typeof name === 'string' && name.trim()) newName = String(name);
+    if (typeof description === 'string') newDescription = description.trim() ? String(description) : null;
+    if (typeof box_code === 'string' && box_code.trim()) {
+      const box = db.prepare('SELECT code FROM boxes WHERE code = ?').get(box_code);
+      if (!box) return res.status(400).json({ error: `Unknown box_code ${box_code}` });
+      newBoxCode = box_code;
+    }
+
+    db.prepare('UPDATE items SET name = ?, description = ?, box_code = ? WHERE id = ?')
+      .run(newName, newDescription, newBoxCode, id);
+    const updated = db.prepare('SELECT * FROM items WHERE id = ?').get(id);
+    res.json(updated);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to update item' });
+  }
+});
+
 // Delete item by id
 app.delete('/api/items/:id', (req, res) => {
   const id = Number(req.params.id);
@@ -532,6 +565,24 @@ app.post('/api/items/batch', (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Failed to create items batch' });
+  }
+});
+
+// Export all data (boxes and items)
+app.get('/api/export', (_req, res) => {
+  try {
+    const boxes = db.prepare('SELECT id, code, label FROM boxes ORDER BY code ASC').all();
+    const items = db.prepare('SELECT id, name, description, image_path, box_code, created_at FROM items ORDER BY created_at DESC').all();
+    const payload = { exported_at: new Date().toISOString(), boxes, items };
+    if (String(_req.query.download || '').toLowerCase() === '1') {
+      res.setHeader('Content-Type', 'application/json');
+      res.setHeader('Content-Disposition', 'attachment; filename="klut3rbox-export.json"');
+      return res.send(JSON.stringify(payload, null, 2));
+    }
+    res.json(payload);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to export data' });
   }
 });
 
